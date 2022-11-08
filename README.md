@@ -46,6 +46,10 @@ Format code:
 
 * `black .`
 
+Lint types:
+
+* `mypy algosdk`
+
 ## Quick start
 
 Here's a simple example you can run without a node.
