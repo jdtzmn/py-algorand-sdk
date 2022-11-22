@@ -10,7 +10,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    Generic,
     cast,
 )
 
@@ -78,13 +77,6 @@ def populate_foreign_array(
     return offset + len(foreign_array) - 1
 
 
-SignedTransaction = Union[
-    transaction.SignedTransaction,
-    transaction.LogicSigTransaction,
-    transaction.MultisigTransaction,
-]
-
-
 class AtomicTransactionComposer:
     """
     Constructs an atomic transaction group which may contain a combination of
@@ -107,7 +99,7 @@ class AtomicTransactionComposer:
         self.status = AtomicTransactionComposerStatus.BUILDING
         self.method_dict: Dict[int, abi.Method] = {}
         self.txn_list: List[TransactionWithSigner] = []
-        self.signed_txns: List[SignedTransaction] = []
+        self.signed_txns: List[transaction.SignedTransaction] = []
         self.tx_ids: List[str] = []
 
     def get_status(self) -> AtomicTransactionComposerStatus:
@@ -411,7 +403,7 @@ class AtomicTransactionComposer:
         self.status = AtomicTransactionComposerStatus.BUILT
         return self.txn_list
 
-    def gather_signatures(self) -> list:
+    def gather_signatures(self) -> List[transaction.SignedTransaction]:
         """
         Obtain signatures for each transaction in this group. If signatures have already been obtained,
         this method will return cached versions of the signatures.
@@ -425,7 +417,7 @@ class AtomicTransactionComposer:
             # Return cached versions of the signatures
             return self.signed_txns
 
-        stxn_list: List[Optional[SignedTransaction]] = [None] * len(
+        stxn_list: List[Optional[transaction.SignedTransaction]] = [None] * len(
             self.txn_list
         )
         signer_indexes: Dict[
@@ -449,13 +441,13 @@ class AtomicTransactionComposer:
             raise error.AtomicTransactionComposerError(
                 "missing signatures, got {}".format(stxn_list)
             )
-        full_stxn_list = cast(List[SignedTransaction], stxn_list)
+        full_stxn_list = cast(List[transaction.SignedTransaction], stxn_list)
 
         self.status = AtomicTransactionComposerStatus.SIGNED
         self.signed_txns = full_stxn_list
         return self.signed_txns
 
-    def submit(self, client: algod.AlgodClient) -> list:
+    def submit(self, client: algod.AlgodClient) -> List[str]:
         """
         Send the transaction group to the network, but don't wait for it to be
         committed to a block. An error will be thrown if submission fails.
@@ -468,7 +460,7 @@ class AtomicTransactionComposer:
             client (AlgodClient): Algod V2 client
 
         Returns:
-            list[Transaction]: list of submitted transactions
+            List[str]: list of submitted transaction IDs
         """
         if self.status <= AtomicTransactionComposerStatus.SUBMITTED:
             self.gather_signatures()
