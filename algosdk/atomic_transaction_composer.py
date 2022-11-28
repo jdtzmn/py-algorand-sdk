@@ -418,7 +418,7 @@ class AtomicTransactionComposer:
         An error will be thrown if signing any of the transactions fails.
 
         Returns:
-            list[SignedTransactions]: list of signed transactions
+            List[SignedTransaction]: list of signed transactions
         """
         if self.status >= AtomicTransactionComposerStatus.SIGNED:
             # Return cached versions of the signatures
