@@ -7,7 +7,6 @@ from typing import (
     List,
     Dict,
     Optional,
-    Sequence,
     Tuple,
     TypeVar,
     Union,
@@ -449,10 +448,10 @@ class AtomicTransactionComposer:
             raise error.AtomicTransactionComposerError(
                 "missing signatures, got {}".format(stxn_list)
             )
-        full_stxn_list = cast(Sequence[SignedTransaction], stxn_list)
+        full_stxn_list = cast(List[SignedTransaction], stxn_list)
 
         self.status = AtomicTransactionComposerStatus.SIGNED
-        self.signed_txns = list(full_stxn_list)
+        self.signed_txns = full_stxn_list
         return self.signed_txns
 
     def submit(self, client: algod.AlgodClient) -> List[str]:
@@ -599,7 +598,7 @@ class TransactionSigner(ABC):
     @abstractmethod
     def sign_transactions(
         self, txn_group: List[transaction.Transaction], indexes: List[int]
-    ) -> Sequence[SignedTransaction]:
+    ) -> List[SignedTransaction]:
         pass
 
 
@@ -618,7 +617,7 @@ class AccountTransactionSigner(TransactionSigner):
 
     def sign_transactions(
         self, txn_group: List[transaction.Transaction], indexes: List[int]
-    ) -> Sequence[SignedTransaction]:
+    ) -> List[SignedTransaction]:
         """
         Sign transactions in a transaction group given the indexes.
 
@@ -652,7 +651,7 @@ class LogicSigTransactionSigner(TransactionSigner):
 
     def sign_transactions(
         self, txn_group: List[transaction.Transaction], indexes: List[int]
-    ) -> Sequence[SignedTransaction]:
+    ) -> List[SignedTransaction]:
         """
         Sign transactions in a transaction group given the indexes.
 
@@ -664,7 +663,7 @@ class LogicSigTransactionSigner(TransactionSigner):
             txn_group (list[Transaction]): atomic group of transactions
             indexes (list[int]): array of indexes in the atomic transaction group that should be signed
         """
-        stxns = []
+        stxns: List[SignedTransaction] = []
         for i in indexes:
             stxn = transaction.LogicSigTransaction(txn_group[i], self.lsig)
             stxns.append(stxn)
@@ -688,7 +687,7 @@ class MultisigTransactionSigner(TransactionSigner):
 
     def sign_transactions(
         self, txn_group: List[transaction.Transaction], indexes: List[int]
-    ) -> Sequence[SignedTransaction]:
+    ) -> List[SignedTransaction]:
         """
         Sign transactions in a transaction group given the indexes.
 
@@ -700,7 +699,7 @@ class MultisigTransactionSigner(TransactionSigner):
             txn_group (list[Transaction]): atomic group of transactions
             indexes (list[int]): array of indexes in the atomic transaction group that should be signed
         """
-        stxns = []
+        stxns: List[SignedTransaction] = []
         for i in indexes:
             mtxn = transaction.MultisigTransaction(txn_group[i], self.msig)
             for sk in self.sks:
